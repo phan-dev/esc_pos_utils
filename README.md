@@ -2,7 +2,7 @@
 
 [![Pub Version](https://img.shields.io/pub/v/esc_pos_utils)](https://pub.dev/packages/esc_pos_utils)
 
-Base Flutter/Dart classes for ESC/POS printing. `Generator` class generates ESC/POS commands that can be sent to a thermal printer.
+Base Flutter/Dart classes for ESC/POS printing. `Ticket` class generates ESC/POS commands that can be sent to a thermal printer.
 
 This is the "base" library that used for:
 
@@ -30,45 +30,43 @@ This is the "base" library that used for:
 ### Simple ticket with styles:
 
 ```dart
-List<int> testTicket() {
-  final List<int> bytes = [];
+Ticket testTicket() {
   // Using default profile
   final profile = await CapabilityProfile.load();
-  final generator = Generator(PaperSize.mm80, profile);
-  List<int> bytes = [];
+  final Ticket ticket = Ticket(PaperSize.mm80, profile);
 
-  bytes += generator.text(
+  ticket.text(
       'Regular: aA bB cC dD eE fF gG hH iI jJ kK lL mM nN oO pP qQ rR sS tT uU vV wW xX yY zZ');
-  bytes += generator.text('Special 1: àÀ èÈ éÉ ûÛ üÜ çÇ ôÔ',
+  ticket.text('Special 1: àÀ èÈ éÉ ûÛ üÜ çÇ ôÔ',
       styles: PosStyles(codeTable: PosCodeTable.westEur));
-  bytes += generator.text('Special 2: blåbærgrød',
+  ticket.text('Special 2: blåbærgrød',
       styles: PosStyles(codeTable: PosCodeTable.westEur));
 
-  bytes += generator.text('Bold text', styles: PosStyles(bold: true));
-  bytes += generator.text('Reverse text', styles: PosStyles(reverse: true));
-  bytes += generator.text('Underlined text',
+  ticket.text('Bold text', styles: PosStyles(bold: true));
+  ticket.text('Reverse text', styles: PosStyles(reverse: true));
+  ticket.text('Underlined text',
       styles: PosStyles(underline: true), linesAfter: 1);
-  bytes += generator.text('Align left', styles: PosStyles(align: PosAlign.left));
-  bytes += generator.text('Align center', styles: PosStyles(align: PosAlign.center));
-  bytes += generator.text('Align right',
+  ticket.text('Align left', styles: PosStyles(align: PosAlign.left));
+  ticket.text('Align center', styles: PosStyles(align: PosAlign.center));
+  ticket.text('Align right',
       styles: PosStyles(align: PosAlign.right), linesAfter: 1);
 
-  bytes += generator.text('Text size 200%',
+  ticket.text('Text size 200%',
       styles: PosStyles(
         height: PosTextSize.size2,
         width: PosTextSize.size2,
       ));
 
-  bytes += generator.feed(2);
-  bytes += generator.cut();
-  return bytes;
+  ticket.feed(2);
+  ticket.cut();
+  return ticket;
 }
 ```
 
 ### Print a table row:
 
 ```dart
-generator.row([
+ticket.row([
     PosColumn(
       text: 'col3',
       width: 3,
@@ -105,18 +103,18 @@ final ByteData data = await rootBundle.load('assets/logo.png');
 final Uint8List bytes = data.buffer.asUint8List();
 final Image image = decodeImage(bytes);
 // Using `ESC *`
-generator.image(image);
+ticket.image(image);
 // Using `GS v 0` (obsolete)
-generator.imageRaster(image);
+ticket.imageRaster(image);
 // Using `GS ( L`
-generator.imageRaster(image, imageFn: PosImageFn.graphics);
+ticket.imageRaster(image, imageFn: PosImageFn.graphics);
 ```
 
 ### Print a Barcode:
 
 ```dart
 final List<int> barData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4];
-generator.barcode(Barcode.upcA(barData));
+ticket.barcode(Barcode.upcA(barData));
 ```
 
 ### Print a QR Code:
@@ -124,7 +122,7 @@ generator.barcode(Barcode.upcA(barData));
 Using native ESC/POS commands:
 
 ```dart
-generator.qrcode('example.com');
+ticket.qrcode('example.com');
 ```
 
 To print a QR Code as an image (if your printer doesn't support native commands), add [qr_flutter](https://pub.dev/packages/qr_flutter) and [path_provider](https://pub.dev/packages/path_provider) as a dependency in your `pubspec.yaml` file.
@@ -144,7 +142,7 @@ try {
   final imgFile = await qrFile.writeAsBytes(uiImg.buffer.asUint8List());
   final img = decodeImage(imgFile.readAsBytesSync());
 
-  generator.image(img);
+  ticket.image(img);
 } catch (e) {
   print(e);
 }
@@ -157,8 +155,8 @@ Different printers support different sets of code tables. Some printer models ar
 ```dart
 // Xprinter XP-N160I
 final profile = await CapabilityProfile.load('XP-N160I');
-final generator = Generator(PaperSize.mm80, profile);
-bytes += generator.setGlobalCodeTable('CP1252');
+final Ticket ticket = Ticket(PaperSize.mm80, profile);
+ticket.setGlobalCodeTable('CP1252');
 ```
 
 All available profiles can be retrieved by calling :

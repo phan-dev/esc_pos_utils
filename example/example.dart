@@ -4,29 +4,25 @@ import 'package:flutter/services.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 
 Future<void> main() async {
-  final profile = await CapabilityProfile.load();
-  final generator = Generator(PaperSize.mm80, profile);
-  List<int> bytes = [];
+  CapabilityProfile profile = await CapabilityProfile.load();
+  final Ticket ticket = Ticket(PaperSize.mm80, profile);
 
-  bytes += generator.text(
+  ticket.text(
       'Regular: aA bB cC dD eE fF gG hH iI jJ kK lL mM nN oO pP qQ rR sS tT uU vV wW xX yY zZ');
-  bytes += generator.text('Special 1: àÀ èÈ éÉ ûÛ üÜ çÇ ôÔ',
+  ticket.text('Special 1: àÀ èÈ éÉ ûÛ üÜ çÇ ôÔ',
       styles: PosStyles(codeTable: 'CP1252'));
-  bytes += generator.text('Special 2: blåbærgrød',
-      styles: PosStyles(codeTable: 'CP1252'));
+  ticket.text('Special 2: blåbærgrød', styles: PosStyles(codeTable: 'CP1252'));
 
-  bytes += generator.text('Bold text', styles: PosStyles(bold: true));
-  bytes += generator.text('Reverse text', styles: PosStyles(reverse: true));
-  bytes += generator.text('Underlined text',
+  ticket.text('Bold text', styles: PosStyles(bold: true));
+  ticket.text('Reverse text', styles: PosStyles(reverse: true));
+  ticket.text('Underlined text',
       styles: PosStyles(underline: true), linesAfter: 1);
-  bytes +=
-      generator.text('Align left', styles: PosStyles(align: PosAlign.left));
-  bytes +=
-      generator.text('Align center', styles: PosStyles(align: PosAlign.center));
-  bytes += generator.text('Align right',
+  ticket.text('Align left', styles: PosStyles(align: PosAlign.left));
+  ticket.text('Align center', styles: PosStyles(align: PosAlign.center));
+  ticket.text('Align right',
       styles: PosStyles(align: PosAlign.right), linesAfter: 1);
 
-  bytes += generator.row([
+  ticket.row([
     PosColumn(
       text: 'col3',
       width: 3,
@@ -44,7 +40,7 @@ Future<void> main() async {
     ),
   ]);
 
-  bytes += generator.text('Text size 200%',
+  ticket.text('Text size 200%',
       styles: PosStyles(
         height: PosTextSize.size2,
         width: PosTextSize.size2,
@@ -52,15 +48,15 @@ Future<void> main() async {
 
   // Print image:
   final ByteData data = await rootBundle.load('assets/logo.png');
-  final Uint8List imgBytes = data.buffer.asUint8List();
-  final Image image = decodeImage(imgBytes);
-  bytes += generator.image(image);
+  final Uint8List bytes = data.buffer.asUint8List();
+  final Image image = decodeImage(bytes);
+  ticket.image(image);
   // Print image using an alternative (obsolette) command
-  // bytes += generator.imageRaster(image);
+  // ticket.imageRaster(image);
 
   // Print barcode
   final List<int> barData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 4];
-  bytes += generator.barcode(Barcode.upcA(barData));
+  ticket.barcode(Barcode.upcA(barData));
 
   // Print mixed (chinese + latin) text. Only for printers supporting Kanji mode
   // ticket.text(
@@ -69,6 +65,7 @@ Future<void> main() async {
   //   containsChinese: true,
   // );
 
-  bytes += generator.feed(2);
-  bytes += generator.cut();
+  ticket.feed(2);
+
+  ticket.cut();
 }
