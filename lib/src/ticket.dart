@@ -24,6 +24,8 @@ class Ticket {
     reset();
   }
 
+  List<String> strings = [];
+
   // Output bytecode
   List<int> bytes = [];
   // Ticket config
@@ -221,6 +223,8 @@ class Ticket {
     bool containsChinese = false,
     int maxCharsPerLine,
   }) {
+    strings.add(text);
+
     if (!containsChinese) {
       _text(
         _encode(text, isKanji: containsChinese),
@@ -351,6 +355,8 @@ class Ticket {
   /// A row contains up to 12 columns. A column has a width between 1 and 12.
   /// Total width of columns in one row must be equal 12.
   void row(List<PosColumn> cols) {
+    String colsString = '';
+
     final isSumValid = cols.fold(0, (int sum, col) => sum + col.width) == 12;
     if (!isSumValid) {
       throw Exception('Total columns width must be equal to 12');
@@ -366,6 +372,14 @@ class Ticket {
       final double toPos =
           _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
       int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
+
+      colsString += cols[i].text;
+      int l = maxCharactersNb - cols[i].text.length - spaceBetweenRows;
+      if (l > 0) {
+        for (int a = 0; a < l; a++) {
+          colsString += ' ';
+        }
+      }
 
       if (!cols[i].containsChinese) {
         // CASE 1: containsChinese = false
@@ -446,6 +460,8 @@ class Ticket {
       }
     }
 
+    strings.add(colsString);
+
     emptyLines(1);
 
     if (isNextRow) {
@@ -487,6 +503,8 @@ class Ticket {
   /// Similar to [feed] but uses an alternative command
   void emptyLines(int n) {
     if (n > 0) {
+      // strings.add('');
+
       bytes += List.filled(n, '\n').join().codeUnits;
     }
   }
@@ -496,6 +514,8 @@ class Ticket {
   /// Similar to [emptyLines] but uses an alternative command
   void feed(int n) {
     if (n >= 0 && n <= 255) {
+      strings.add('');
+
       bytes += Uint8List.fromList(
         List.from(cFeedN.codeUnits)..add(n),
       );
