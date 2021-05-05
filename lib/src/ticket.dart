@@ -373,10 +373,33 @@ class Ticket {
           _colIndToPosition(colInd + cols[i].width) - spaceBetweenRows;
       int maxCharactersNb = ((toPos - fromPos) / charWidth).floor();
 
-      colsString += cols[i].text;
-      int l = maxCharactersNb - cols[i].text.length - spaceBetweenRows;
-      if (l > 0) {
-        for (int a = 0; a < l; a++) {
+      int spaceCount = 0;
+      if (cols[i].isCapital) {
+        spaceCount = maxCharactersNb - (cols[i].text.length * 2).ceil();
+      } else {
+        spaceCount = maxCharactersNb - (cols[i].text.length * 1.5).ceil();
+      }
+      //spaceCount = maxCharactersNb - cols[i].text.length - spaceBetweenRows;
+      //spaceCount = spaceCount * 2;
+
+      if (cols[i].styles.align == PosAlign.right) {
+        for (int spaceInd = 0; spaceInd < spaceCount; spaceInd++) {
+          colsString += ' ';
+        }
+        colsString += cols[i].text;
+      } else if (cols[i].styles.align == PosAlign.center) {
+        int spaceLeft = (spaceCount / 2).floor();
+        int spaceRight = spaceCount - spaceLeft;
+        for (int spaceInd = 0; spaceInd < spaceLeft; spaceInd++) {
+          colsString += ' ';
+        }
+        colsString += cols[i].text;
+        for (int spaceInd = 0; spaceInd < spaceRight; spaceInd++) {
+          colsString += ' ';
+        }
+      } else {
+        colsString += cols[i].text;
+        for (int spaceInd = 0; spaceInd < spaceCount; spaceInd++) {
           colsString += ' ';
         }
       }
